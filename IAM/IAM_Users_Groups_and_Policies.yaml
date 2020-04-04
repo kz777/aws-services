@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Metadata:
+  License: Apache-2.0
+Description: 'AWS CloudFormation Sample Template IAM_Users_Groups_and_Policies: Sample
+  template showing how to create IAM users, groups and policies.'
+Parameters:
+  PassworD:
+    NoEcho: 'true'
+    Type: String
+    Description: New account password (this is the one you saw in the template)
+    MinLength: '3'
+    MaxLength: '41'
+    ConstraintDescription: the password must be between 3 and 41 characters
+  UserGivenName:
+    NoEcho: 'false'
+    Type: String
+    Description: Please enter user name for your IAM user that will be created 
+    MinLength: '5'
+    MaxLength: '41'
+    ConstraintDescription: enter Username that is min 5 and max 41 chars
+Resources:
+  CFNUser:
+    Type: AWS::IAM::User
+    Properties:
+      LoginProfile:
+        Password: !Ref 'PassworD'
+      UserName: !Ref 'UserGivenName'
+  CFNUserGroup: # This Group Name should have the name given by cloudformation runner.
+    Type: AWS::IAM::Group
+    # GroupName # Hint: use Properties and !Ref 'GroupName'
+  CFNAdminGroup: #This groups should have name hardcoded "Admin-Group"
+    Type: AWS::IAM::Group 
+  Users:
+    Type: AWS::IAM::UserToGroupAddition
+    Properties:
+      GroupName: !Ref 'CFNUserGroup'
+      Users: [!Ref 'CFNUser']
+  Admins:
+    Type: AWS::IAM::UserToGroupAddition
+    Properties:
+      GroupName: !Ref 'CFNAdminGroup'
+      Users: [!Ref 'CFNUser']
+  CFNUserPolicies:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CFNUsers
+      PolicyDocument:
+        Statement:
+        - Effect: Allow
+          Action: ['cloudformation:Describe*', 'cloudformation:List*', 'cloudformation:Get*']
+          Resource: '*'
+      Groups: [!Ref 'CFNUserGroup']
+  CFNAdminPolicies:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CFNAdmins
+      PolicyDocument:
+        Statement:
+        - Effect: Allow
+          Action: cloudformation:*
+          Resource: '*'
+      Groups: [!Ref 'CFNAdminGroup']
+  CFNKeys:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName: !Ref 'CFNUser'
+Outputs:
+  AccessKey:
+    Value: !Ref 'CFNKeys'
+    Description: AWSAccessKeyId of new user
+  SecretKey:
+    Value: !GetAtt [CFNKeys, SecretAccessKey]
+    Description: AWSSecretAccessKey of new user
