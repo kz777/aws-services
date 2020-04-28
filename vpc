@@ -1,0 +1,4 @@
+Resources:
+  EC2VPC3H4F2:
+    Type: 'AWS::EC2::VPC'
+    Properties: {}
